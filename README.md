@@ -4,13 +4,13 @@
 UTCTF Final leaderboard:
 ![](Top10Teams.png)
 
-I competed with TheHackersCrew and we placed 4th out of 560 teams. By the end, we only had 2 touch challenges left.
+I competed with TheHackersCrew and we placed 4th out of 560 teams. By the end, we only had 2 challenges left.
 ![](FinalResults.png)
 
 Here are my writeups for 3 interesting challenges from UTCTF.
-1. [Failed-Hash-Function (Crypto)](#Failed-Hash-Function)
-2. [ReReCaptcha (Web)](#ReReCaptcha)
-3. [UTCTF Adventure ROM 4 (Rev)](#UTCTF-Adventure-ROM-4)
+1. [Failed-Hash-Function (Crypto)](#failed-hash-function)
+2. [ReReCaptcha (Web)](#rerecaptcha)
+3. [UTCTF Adventure ROM 4 (Rev)](#utctf-adventure-rom-4)
 
 ## Failed Hash Function
 ![](FHF.png)
@@ -37,12 +37,66 @@ Finally, our brute force only guarantees 7 bits of each key. We get all 8 bits o
 
 After we repeat this hash-cracking process 100 times, we receive the flag.
 
-[Solution Script](failhash.py)
+[Solution Script - failhash.py](failhash.py)
 
-[Solution Ouput](failhashfunction_out.txt)
+[Solution Ouput - keys and flags](failhashfunction_out.txt)
 
 Flag: `utflag{Ju5t_u53_SHA256_LoLc4t5_9a114be7f}`
 
 
 ## ReReCaptcha
 ![](RRC.png)
+
+### Solution
+This challenge requires us to solve 1,000 captchas in a row. Since this challenge was in the web category, I looked into the source code to see if there was anything to exploit. Unfortunately, there didn't seem to be anything vulnerable.
+
+One thing I did notice was that there was a session cookie. After playing around with the cookies, I realized that the cookie represents a captcha image and the number of solved captchas in that session.
+
+This means that if we mess up on a captcha, we can revert our session cookie to one that was working before. Essentially, this restores our progress in the case of any mistakes so we don't have to restart from 0.
+
+Next, we need to figure out how to solve the captchas. Looking at the captchas, the characters all seemed to fit a standard font and size, so OCR libraries such as OpenCv or Python-tesseract should be able to read them. All we need is one line of code - `pytesseract.image_to_string(captcha, config='--oem 1 --psm 13')`. In our config parameter, we specify OEM 1 - neural net engine model and PSM 13 - one line of raw text.
+
+However, there is too much color and noise in the captchas and the text is unrecognizable. So, we need to find a way to filter them out.
+
+The first method I tried was to play around with different RGB thresholds.
+![](thresh1.png)
+![](thresh2.png)
+
+This didn't work and the captchas could not get clean enough for any OCR programs to reliably read.
+
+After putting the problem aside, one of my teammates realized that the background of each captcha was the same each time. This means that if we have the original background image, we can take the difference / xor of our captcha to get a clean image.
+
+We were not able to find the original background with Google and other reverse image searches. As an alternative, we tried to get the original image by taking tons of captchas and finding the most common pixel at each position.
+
+Result:
+
+![](background.png)
+
+This worked somewhat well. When tested on our captcha training set, pytesseract was successful around a third of the time.
+
+After taking a deeper look at the images after taking the xor, we found that some pixels were flipped. We manually patched some of these areas in our code to get cleaner results. This boosted the performance on our training set to around 90%.
+
+Finally, we run our code on the actual challenge deployment. We send a GET request to get a captcha and we send a POST request to submit the solution. We keep track of best scores and their corresponding cookies. Anytime our captcha recognition code fails, we can backtrack and progress with a new captcha. Overall, it took my code 1.5 hours to run.
+
+[Solution Script - rerecaptcha.py](rerecaptcha.py)
+
+[Solution Output - list of cookies](captcha_cookies.txt)
+
+Once we get the last cookie corresponding to 1,000 solves, we can send a GET request to get the flag.
+
+Flag: `utflag{skibidi_bop_mm_dada_uLG7Jrd5hP}`
+
+## UTCTF Adventure ROM 4
+![](ROM.png)
+
+### Solution
+
+In this challenge, we are given a GameBoy ROM. One of my teammates found a great emulator and debugger called [BGB](https://bgb.bircd.org/#downloads). 
+
+The key is to see the map using the VRAM viewer and notice that there is more beyond the wall. We can use the cheat searcher to figure out which memory addresses store the location of our sprite. Once we find those 4 addresses, we can edit them using the cheat engine to get past the walls and read the flag. 
+
+[Solution Video - Youtube](https://youtu.be/MjbcB86Mpw4)
+
+Flag: ![](flag.png)
+
+Flag: `utflag{NXHDGZROUT}`

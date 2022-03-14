@@ -88,6 +88,7 @@ Flag: `utflag{skibidi_bop_mm_dada_uLG7Jrd5hP}`
 
 ## UTCTF Adventure ROM 4
 ![](ROM.png)
+[Attachment - game.gb](game.gb)
 
 ### Solution
 

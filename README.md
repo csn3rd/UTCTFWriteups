@@ -76,7 +76,7 @@ This worked somewhat well. When tested on our captcha training set, pytesseract 
 
 After taking a deeper look at the images after taking the xor, we found that some pixels were flipped. We manually patched some of these areas in our code to get cleaner results. This boosted the performance on our training set to around 90%.
 
-Finally, we run our code on the actual challenge deployment. We send a GET request to get a captcha and we send a POST request to submit the solution. We keep track of best scores and their corresponding cookies. Anytime our captcha recognition code fails, we can backtrack and progress with a new captcha. Overall, it took my code 1.5 hours to run.
+Finally, we run our code on the actual challenge deployment. We send a GET request to get a captcha and we send a POST request to submit the solution. We keep track of best scores and their corresponding cookies. Anytime our captcha recognition code fails, we can backtrack and progress with a new captcha. Overall, it took around 80 minutes for my code to successfully solve 1,000 captches.
 
 [Solution Script - rerecaptcha.py](rerecaptcha.py)
 
